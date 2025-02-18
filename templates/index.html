@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate and Link Generator</title>
+</head>
+<body>
+    <h1>Welcome to the Certificate and Link Generator</h1>
+    <form action="/generate_certificates" method="post" enctype="multipart/form-data">
+        <h2>Generate Certificates</h2>
+        <input type="file" name="file" required>
+        <button type="submit">Upload and Generate Certificates</button>
+    </form>
+
+    <form action="/upload_ids" method="post" enctype="multipart/form-data">
+        <h2>Generate Participant IDs</h2>
+        <input type="file" name="file" required>
+        <button type="submit">Upload and Generate IDs</button>
+    </form>
+
+    <form action="/generate_links" method="post" enctype="multipart/form-data">
+        <h2>Generate LinkedIn Links</h2>
+        <input type="file" name="file" required>
+        <button type="submit">Upload and Generate Links</button>
+    </form>
+</body>
+</html>

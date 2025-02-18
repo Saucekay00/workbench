@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate & LinkedIn Link Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #download-section {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Certificate & LinkedIn Link Generator</h1>
+    <form id="upload-form">
+        <label for="file">Upload Excel File:</label><br>
+        <input type="file" id="file" name="file" accept=".xlsx"><br>
+
+        <label for="issueYear">Select Issue Year:</label><br>
+        <select id="issueYear" name="issueYear">
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+        </select><br>
+
+        <label for="issueMonth">Select Issue Month:</label><br>
+        <select id="issueMonth" name="issueMonth">
+            <option value="01">January</option>
+            <option value="02">February</option>
+            <option value="03">March</option>
+            <option value="04">April</option>
+            <option value="05">May</option>
+            <option value="06">June</option>
+            <option value="07">July</option>
+            <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+        </select><br>
+
+        <button type="submit">Generate Links</button>
+    </form>
+
+    <div id="download-section" class="hidden">
+        <p>Links generated successfully! Download your updated Excel file below:</p>
+        <a id="download-link" href="#" download>Download Updated Excel File</a>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('upload-form');
+        const downloadSection = document.getElementById('download-section');
+        const downloadLink = document.getElementById('download-link');
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('file');
+            const issueYear = document.getElementById('issueYear').value;
+            const issueMonth = document.getElementById('issueMonth').value;
+
+            if (!fileInput.files[0]) {
+                alert('Please upload an Excel file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('issueYear', issueYear);
+            formData.append('issueMonth', issueMonth);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5002', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    downloadLink.href = url;
+                    downloadLink.download = `updated_links_${timestamp}.xlsx`; // Dynamic name
+                    downloadSection.classList.remove('hidden');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.error}`); // Display server error message
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while processing the file.');
+            }
+        });
+    </script>
+</body>
+</html>

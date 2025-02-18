@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate and Link Generator</title>
+</head>
+<body>
+    <h1>Welcome to the Certificate and Link Generator</h1>
+
+    <!-- Section for Certificate Generation -->
+    <h2>Generate Certificates</h2>
+    <form action="http://127.0.0.1:5001/generate" method="POST" enctype="multipart/form-data">
+        <label for="certFile">Upload Participant File:</label>
+        <input type="file" name="file" id="certFile" required>
+        <button type="submit">Generate Certificates</button>
+    </form>
+
+    <!-- Section for ID Generation -->
+    <h2>Generate Participant IDs</h2>
+    <form action="http://127.0.0.1:5000/upload" method="POST" enctype="multipart/form-data" target="_blank">
+        <label for="idFile">Upload Participant File:</label>
+        <input type="file" name="file" id="idFile" required>
+        <button type="submit">Generate IDs</button>
+    </form>
+
+    <!-- Section for LinkedIn Link Generation -->
+    <h2>Generate LinkedIn Links</h2>
+    <form action="http://127.0.0.1:5002/generate" method="POST" enctype="multipart/form-data" target="_blank">
+        <label for="linkFile">Upload Participant File:</label>
+        <input type="file" name="file" id="linkFile" required>
+        <button type="submit">Generate LinkedIn Links</button>
+    </form>
+</body>
+</html>
