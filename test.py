@@ -10,8 +10,6 @@ import time
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from flask_cors import CORS
-import re
-import win32com.client
 from email.mime.base import MIMEBase
 from email import encoders
 import tempfile
