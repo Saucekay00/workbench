@@ -24,6 +24,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import img2pdf
 from waitress import serve
+import sys
+import platform
 
 app = Flask(__name__)
 CORS(app)
@@ -592,6 +594,11 @@ def index():
 
     print(f"Logged in as: {session['username']}")
     return render_template('unifiedv2_ui.html')
+    
+
+if platform.system() == "Windows":
+    import pythoncom
+    import win32com.client
 
 
 if __name__ == '__main__':
