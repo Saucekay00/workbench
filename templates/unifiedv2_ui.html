@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Tool Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #fff;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button, select {
+            margin-bottom: 15px;
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+        }
+
+        #task-history-table {
+            width: 100%;  /* Make table use full width */
+            border-collapse: collapse;
+        }
+
+        #task-history-table th,
+        #task-history-table td {
+            padding: 12px 20px;  /* Adjust spacing inside each cell */
+            text-align: left;
+            border-bottom: 1px solid #ddd;  /* Add light border for better visibility */
+        }
+
+        #task-history-table th {
+            background-color: #f4f4f4;  /* Light background for headers */
+        }
+
+        /* Adjust column width */
+        #task-history-table th:nth-child(1),
+        #task-history-table td:nth-child(1) {
+            width: 20%;  /* Task column */
+        }
+
+        #task-history-table th:nth-child(2),
+        #task-history-table td:nth-child(2) {
+            width: 20%;  /* Participant ID */
+        }
+
+        #task-history-table th:nth-child(3),
+        #task-history-table td:nth-child(3) {
+            width: 15%;  /* Status */
+        }
+
+        #task-history-table th:nth-child(4),
+        #task-history-table td:nth-child(4) {
+            width: 25%;  /* Timestamp */
+        }
+
+        #task-history-table th:nth-child(5),
+        #task-history-table td:nth-child(5) {
+            width: 20%;  /* Action (Button) */
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Unified Tool Interface</h1>
+
+    <div id="user-info">
+    <p>Welcome, <span id="user-name"></span>!</p>
+    <button onclick="logout()">Logout</button>
+</div>
+
+    <div id="task-history">
+    <h2>Task History</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Participant ID</th>
+                <th>Status</th>
+                <th>Timestamp</th>
+                <th>Action</th> <!-- New Column -->
+            </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+    </table>
+</div>
+
+
+
+    <h2>Upload Excel File</h2>
+    <form id="uploadForm">
+        <label for="fileUpload">Upload Excel File:</label>
+        <input type="file" name="file" id="fileUpload" required>
+        <button type="submit">Upload File</button>
+    </form>
+
+    <h2>Generate Participant IDs</h2>
+    <button id="generateIDs">Generate IDs</button>
+
+    <h2>Generate Certificates</h2>
+    <form id="generateCertForm" action="/certGen" method="post">
+        <button type="submit">Generate Certificates</button>
+    </form>
+
+    <h2>Generate LinkedIn Links</h2>
+    <form id="linkGenForm" method="post" action="/linkGen">
+        <label for="issueYear">Issue Year:</label>
+        <select name="issueYear" id="issueYear" required>
+            <option value="">Select Year</option>
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+        </select>
+
+        <label for="issueMonth">Issue Month:</label>
+        <select name="issueMonth" id="issueMonth" required>
+            <option value="">Select Month</option>
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+        </select>
+
+        <div id="participantInputs"></div>
+        <button type="submit">Generate LinkedIn Links</button>
+    </form>
+
+    <h2>Send Certificates</h2>
+    <label for="eventName">Program Name:</label>
+    <input type="text" id="eventName" name="eventName" placeholder="Enter program name">
+    <button id="sendCertificatesBtn">Send Certificates</button>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        function showToast(message, success = true) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = success ? '#28a745' : '#dc3545';
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const formData = new FormData();
+            formData.append('file', document.getElementById('fileUpload').files[0]);
+
+            fetch('/upload', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => showToast(data.message || data.error, !!data.message))
+                .catch(() => showToast('Error uploading file.', false));
+        });
+
+        document.getElementById('generateIDs').addEventListener('click', function () {
+            fetch('/idGen', { method: 'POST' })
+                .then(response => response.ok ? response.blob() : Promise.reject())
+                .then(blob => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'Generated_Participants.xlsx';
+                    link.click();
+                    showToast('Participant IDs generated and downloaded!');
+                })
+                .catch(() => showToast('Error generating participant IDs.', false));
+        });
+
+        document.getElementById("sendCertificatesBtn").addEventListener("click", function () {
+            let eventName = document.getElementById("eventName").value;
+            fetch("/sendCertificates", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ event_name: eventName })
+            })
+            .then(response => response.json())
+            .then(data => showToast(data.message || data.error, !!data.message))
+            .catch(() => showToast("Failed to send certificates.", false));
+        });
+
+
+    function fetchTaskHistory() {
+    fetch('/taskHistory')
+        .then(response => response.json())
+        .then(data => {
+            const historyBody = document.getElementById('history-body');
+            historyBody.innerHTML = '';
+
+            if (!data.task_history || data.task_history.length === 0) {
+                historyBody.innerHTML = '<tr><td colspan="5">No tasks found.</td></tr>';  // ✅ Show message if no data
+                return;
+            }
+
+            data.task_history.forEach(task => {
+                const previewButton = task.participant_id
+                    ? `<button onclick="previewCertificate('${task.participant_id}')">Preview</button>`
+                    : "N/A";
+
+                const row = `<tr>
+                    <td>${task.task_type}</td>
+                    <td>${task.participant_id || 'N/A'}</td>
+                    <td>${task.status}</td>
+                    <td>${task.timestamp}</td>
+                    <td>${previewButton}</td>
+                </tr>`;
+                historyBody.innerHTML += row;
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching task history:', error);
+            document.getElementById('history-body').innerHTML = '<tr><td colspan="5">Error loading task history.</td></tr>';
+        });
+}
+
+
+    function previewCertificate(participantId) {
+        window.open(`/previewCertificate/${participantId}`, '_blank');
+    }
+
+        function logout() {
+    fetch('/logout')
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/login';
+            } else {
+                showToast('Logout failed. Try again.', false);
+            }
+        })
+        .catch(() => showToast('Error logging out.', false));
+}
+
+
+    window.onload = function() {
+    fetchTaskHistory();
+    fetch('/getUser')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('user-name').innerText = data.full_name;
+        })
+        .catch(error => console.error('Error fetching user:', error));
+};
+
+
+
+    </script>
+</body>
+</html>
