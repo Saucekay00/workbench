@@ -10,7 +10,6 @@ import time
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from flask_cors import CORS
-import pythoncom
 import re
 import win32com.client
 from email.mime.base import MIMEBase
@@ -24,6 +23,13 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import img2pdf
 from waitress import serve
+
+try:
+    import pythoncom
+    import win32com.client
+except ImportError:
+    print("Skipping Windows-specific modules (pythoncom, win32com.client) on Linux.")
+    
 
 app = Flask(__name__)
 CORS(app)
