@@ -600,5 +600,5 @@ def index():
 
 if __name__ == '__main__':
     init_db()
-    serve(app, host="0.0.0.0", port=8001)
+    app.run(host="0.0.0.0", port=8001, debug=True)
 
