@@ -602,6 +602,6 @@ if __name__ == '__main__':
     init_db()
     try:
         print("Starting server on port 8001...")
-        serve(app, host="0.0.0.0", port=80)
+        serve(app, host="0.0.0.0", port=8080)
     except Exception as e:
         print(f"Error starting server: {e}")
