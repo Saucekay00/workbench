@@ -402,11 +402,7 @@ class linkGen:
             return output_file
         except Exception as e:
             return f"Error: Unable to generate links. ({e})"
-
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-GMAIL_USER = "mmtlumi@gmail.com"  # Replace with your Gmail
-GMAIL_PASSWORD = "xieu gldv zypm kdlg"
+            
 
 @app.route('/sendCertificates', methods=['POST'])
 def send_certs():
@@ -417,11 +413,9 @@ def send_certs():
     if not workflow_data.get("participants"):
         return jsonify({"error": "No participants found. Please generate certificates first."}), 400
 
-    # Deduplicate participants
     unique_participants = {participant["email"]: participant for participant in workflow_data["participants"]}.values()
     workflow_data["participants"] = list(unique_participants)
 
-    # Unpack the tuple returned by generate_certificates()
     email_cert_map, _ = certGen.generate_certificates(workflow_data["participants"])
 
     if isinstance(email_cert_map, str) and "Error" in email_cert_map:
@@ -430,17 +424,22 @@ def send_certs():
     success_count = 0
     failure_count = 0
 
-    # Connect to Gmail SMTP
+    # Office365 SMTP details
+    SMTP_SERVER = "smtp.office365.com"
+    SMTP_PORT = 587
+    OFFICE365_USER = "lumi@mmt.my"
+    OFFICE365_PASSWORD = "Paranskanda@33"
+
     try:
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()  # Upgrade connection to secure
-        server.login(GMAIL_USER, GMAIL_PASSWORD)  # Login
+        server.starttls()  # Secure connection
+        server.login(OFFICE365_USER, OFFICE365_PASSWORD)
     except Exception as e:
-        return jsonify({"error": f"Failed to connect to Gmail: {e}"}), 500
+        return jsonify({"error": f"Failed to connect to Office365: {e}"}), 500
 
     for participant in workflow_data["participants"]:
         email = participant["email"]
-        cert_path = email_cert_map.get(email)  # ✅ Now works correctly
+        cert_path = email_cert_map.get(email)
 
         if not cert_path or not os.path.exists(cert_path):
             print(f"Warning: Certificate not found for {email} at {cert_path}")
@@ -448,10 +447,9 @@ def send_certs():
             continue
 
         try:
-            # Create a temporary file for the certificate
             temp_dir = tempfile.gettempdir()
             temp_path = os.path.join(temp_dir, f"cert_{email}_{os.path.basename(cert_path)}")
-            shutil.copy(cert_path, temp_path)  # Copy certificate to temp location
+            shutil.copy(cert_path, temp_path)
 
             print(f"📎 Attaching certificate: {temp_path}")
 
@@ -460,16 +458,12 @@ def send_certs():
                 failure_count += 1
                 continue
 
-            # Create the email
             msg = MIMEMultipart()
-            msg["From"] = GMAIL_USER
+            msg["From"] = OFFICE365_USER
             msg["To"] = email
             msg["Subject"] = f"Your Certificate & Participant ID for {event_name}"
 
             participant_id = participant.get("participant_id", "N/A")
-
-            # Email Body
-            cert_path = email_cert_map.get(email, "")
             cert_url = f"http://127.0.0.1:8000/certificates/{os.path.basename(cert_path)}" if cert_path else ""
 
             params = {
@@ -499,7 +493,6 @@ def send_certs():
             """
             msg.attach(MIMEText(body, "plain"))
 
-            # Attach Certificate
             with open(temp_path, "rb") as attachment:
                 part = MIMEBase("application", "octet-stream")
                 part.set_payload(attachment.read())
@@ -507,8 +500,7 @@ def send_certs():
                 part.add_header("Content-Disposition", f"attachment; filename={os.path.basename(cert_path)}")
                 msg.attach(part)
 
-            # Send Email
-            server.sendmail(GMAIL_USER, email, msg.as_string())
+            server.sendmail(OFFICE365_USER, email, msg.as_string())
             print(f"Email sent successfully to {email}")
             success_count += 1
 
@@ -522,10 +514,10 @@ def send_certs():
                 os.remove(temp_path)
                 print(f"Temporary file {temp_path} deleted.")
 
-    server.quit()  # Close the SMTP server connection
+    server.quit()
 
     return jsonify({
-        "message": f"Certificates emailed successfully from {GMAIL_USER}.",
+        "message": f"Certificates emailed successfully from {OFFICE365_USER}.",
         "success_count": success_count,
         "failure_count": failure_count
     }), 200
