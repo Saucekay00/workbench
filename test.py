@@ -399,10 +399,10 @@ class linkGen:
         except Exception as e:
             return f"Error: Unable to generate links. ({e})"
 
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-GMAIL_USER = "mmtlumi@gmail.com"  # Replace with your Gmail
-GMAIL_PASSWORD = "xieu gldv zypm kdlg"
+SMTP_SERVER = "smtp.office365.com"
+SMTP_PORT = 587  # Using STARTTLS
+SENDER_EMAIL = "lumi@mmt.my"  # The specific email address to send from
+SENDER_PASSWORD = "cjxgxrtbztfdkxlf"  # The password for this email account
 
 @app.route('/sendCertificates', methods=['POST'])
 def send_certs():
@@ -413,7 +413,7 @@ def send_certs():
     if not workflow_data.get("participants"):
         return jsonify({"error": "No participants found. Please generate certificates first."}), 400
 
-    # Deduplicate participants
+    # Deduplicate participants by email
     unique_participants = {participant["email"]: participant for participant in workflow_data["participants"]}.values()
     workflow_data["participants"] = list(unique_participants)
 
@@ -426,17 +426,18 @@ def send_certs():
     success_count = 0
     failure_count = 0
 
-    # Connect to Gmail SMTP
+    # Connect to Office 365 SMTP Server
     try:
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()  # Upgrade connection to secure
-        server.login(GMAIL_USER, GMAIL_PASSWORD)  # Login
+        server.login(SENDER_EMAIL, SENDER_PASSWORD)  # Login using specific sender's credentials
     except Exception as e:
-        return jsonify({"error": f"Failed to connect to Gmail: {e}"}), 500
+        return jsonify({"error": f"Failed to connect to SMTP server: {e}"}), 500
 
+    # Send certificates to each participant
     for participant in workflow_data["participants"]:
         email = participant["email"]
-        cert_path = email_cert_map.get(email)  # ✅ Now works correctly
+        cert_path = email_cert_map.get(email)  # Certificate path
 
         if not cert_path or not os.path.exists(cert_path):
             print(f"Warning: Certificate not found for {email} at {cert_path}")
@@ -458,7 +459,7 @@ def send_certs():
 
             # Create the email
             msg = MIMEMultipart()
-            msg["From"] = GMAIL_USER
+            msg["From"] = SENDER_EMAIL
             msg["To"] = email
             msg["Subject"] = f"Your Certificate & Participant ID for {event_name}"
 
@@ -466,7 +467,7 @@ def send_certs():
 
             # Email Body
             cert_path = email_cert_map.get(email, "")
-            cert_url = f"http://127.0.0.1:8000/certificates/{os.path.basename(cert_path)}" if cert_path else ""
+            cert_url = f"http://your-website-url/certificates/{os.path.basename(cert_path)}" if cert_path else ""
 
             params = {
                 'name': event_name,
@@ -480,40 +481,39 @@ def send_certs():
             linkedin_badge_link = f"https://www.linkedin.com/profile/add?{urllib.parse.urlencode(params)}"
             body = f"""Dear {participant['name']},
 
-            Congratulations on successfully completing {event_name}!
+Congratulations on successfully completing {event_name}!
 
-            We’re delighted to recognize your achievement. Below are your completion details:
+We’re delighted to recognize your achievement. Below are your completion details:
 
-            Participant ID: {participant_id}
-            
-            LinkedIn Badge Link: [Click here to add your certification to LinkedIn]({linkedin_badge_link}) 
+Participant ID: {participant_id}
 
-            Please find your attached certificate. Keep this for your records.
+LinkedIn Badge Link: [Click here to add your certification to LinkedIn]({linkedin_badge_link})
 
-            Best regards,  
-            MMT Universal Academy  
+Please find your attached certificate. Keep this for your records.
+
+Best regards,  
+MMT Universal Academy
             """
             msg.attach(MIMEText(body, "plain"))
 
             # Attach Certificate
             with open(temp_path, "rb") as attachment:
-                part = MIMEBase("application", "octet-stream")
+                part = MIMEBase("application", "pdf")
                 part.set_payload(attachment.read())
                 encoders.encode_base64(part)
-                part.add_header("Content-Disposition", f"attachment; filename={os.path.basename(cert_path)}")
+                part.add_header("Content-Disposition", f"attachment; filename={os.path.basename(temp_path)}")
                 msg.attach(part)
 
             # Send Email
-            server.sendmail(GMAIL_USER, email, msg.as_string())
+            server.sendmail(SENDER_EMAIL, email, msg.as_string())
             print(f"Email sent successfully to {email}")
             success_count += 1
-
-            log_task("Email Sent", participant["participant_id"])
 
         except Exception as e:
             print(f"Error sending email to {email}: {e}")
             failure_count += 1
         finally:
+            # Cleanup temporary file
             if os.path.exists(temp_path):
                 os.remove(temp_path)
                 print(f"Temporary file {temp_path} deleted.")
@@ -521,12 +521,9 @@ def send_certs():
     server.quit()  # Close the SMTP server connection
 
     return jsonify({
-        "message": f"Certificates emailed successfully from {GMAIL_USER}.",
+        "message": f"Certificates emailed successfully from {SENDER_EMAIL}.",
         "success_count": success_count,
         "failure_count": failure_count
-    }), 200
-
-
 def log_task(task_type, participant_id=None, status="Completed"):
     username = session.get('username', 'Unknown')  # Get logged-in user safely
     print(f"Logging Task: {task_type}, Participant ID: {participant_id}, User: {username}, Status: {status}")  # Debugging
@@ -596,5 +593,5 @@ def index():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, port=8000)
-    serve(app, host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=8080)
+    #serve(app, host="0.0.0.0", port=8080)

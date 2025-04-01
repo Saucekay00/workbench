@@ -1,17 +1,33 @@
-import sqlite3
+import smtplib
+from email.message import EmailMessage
 
-def check_users():
-    connection = sqlite3.connect("participants.db")
-    cursor = connection.cursor()
+def send_email():
+    # Set up sender and recipient
+    sender_email = "lumi@mmt.my"
+    recipient_email = "shanjif@mmt.my"
+    subject = "Test Email from Python"
+    body = "Hello! This is a test email sent using Python and Office365 SMTP."
 
-    cursor.execute("SELECT username, password FROM users")
-    users = cursor.fetchall()
-    connection.close()
+    # Create the email
+    msg = EmailMessage()
+    msg['From'] = sender_email
+    msg['To'] = recipient_email
+    msg['Subject'] = subject
+    msg.set_content(body)
 
-    if users:
-        for user in users:
-            print(f"Username: {user[0]}, Hashed Password: {user[1]}")
-    else:
-        print("⚠️ No users found in database!")
+    # Office365 SMTP server details
+    smtp_server = "smtp.office365.com"
+    smtp_port = 587
 
-check_users()
+    # Login credentials (use app password if MFA enabled)
+    password = "Paranskanda@33"
+
+    # Send the email
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()  # Secure the connection
+            server.login(sender_email, password)
+            server.send_message(msg)
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Failed to send email: {e}")

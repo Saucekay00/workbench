@@ -1,18 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create an Account</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background: linear-gradient(to right, #5532D1, #7e5ee7);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    .register-card {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+    }
+
+    .register-card h2 {
+      color: #5532D1;
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
+
+    .form-control:focus {
+      border-color: #5532D1;
+      box-shadow: 0 0 0 0.2rem rgba(85, 50, 209, 0.25);
+    }
+
+    .btn-primary {
+      background-color: #5532D1;
+      border-color: #5532D1;
+    }
+
+    .btn-primary:hover {
+      background-color: #4324a8;
+      border-color: #4324a8;
+    }
+
+    .register-card p {
+      margin-top: 20px;
+    }
+
+    .register-card a {
+      color: #5532D1;
+      text-decoration: none;
+    }
+
+    .register-card a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
+
+  <div style="text-align: center; margin-top: 30px;">
+        <img src="/static/mmt logo-variation-transparent background-02 (1).png"
+             alt="Logo"
+             style="max-width: 350px; height: auto; border-radius: 10px;" />
+  </div>
+
+  <div class="register-card">
     <h2>Create a New Account</h2>
     <form action="/register" method="POST">
-        <input type="text" name="full_name" placeholder="Full Name" required>
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Register</button>
+      <div class="mb-3">
+        <input type="text" name="full_name" class="form-control" placeholder="Full Name" required/>
+      </div>
+      <div class="mb-3">
+        <input type="text" name="username" class="form-control" placeholder="Username" required/>
+      </div>
+      <div class="mb-3">
+        <input type="password" name="password" class="form-control" placeholder="Password" required/>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Register</button>
     </form>
     <p>Already have an account? <a href="/login">Login</a></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
